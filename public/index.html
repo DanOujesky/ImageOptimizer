@@ -12,13 +12,18 @@
     </header>
     <section>
       <input
-        class="image-input"
         type="file"
         id="images"
+        class="image-input"
         multiple
         accept="image/*"
       />
-      <button id="convert-button">CONVERT</button>
+      <label for="images" class="upload-btn">UPLOAD</label>
+      <div class="menu">
+        <div id="preview-container" class="preview-container"></div>
+        <button id="convert-button">CONVERT</button>
+        <div id="preview-converted-container" class="preview-container"></div>
+      </div>
       <button id="download-button">DOWNLOAD</button>
     </section>
 
