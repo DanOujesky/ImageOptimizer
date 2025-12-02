@@ -24,9 +24,14 @@
         <button id="convert-button">CONVERT</button>
         <div id="preview-converted-container" class="preview-container"></div>
       </div>
-      <button id="download-button">DOWNLOAD</button>
+      <a
+        href="http://localhost:5000/download"
+        id="download-button"
+        download="images.zip"
+        >DOWNLOAD</a
+      >
     </section>
-
+    <script src="/socket.io/socket.io.js"></script>
     <script type="module" src="main.js"></script>
   </body>
 </html>

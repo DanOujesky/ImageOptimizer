@@ -28,9 +28,6 @@ document
   .getElementById("convert-button")
   .addEventListener("click", convertImages);
 
-document.getElementById("download-button").addEventListener("click", () => {
-  window.location.href = "http://localhost:5000/download";
-});
 document.getElementById("images").addEventListener("change", (event) => {
   const previewContainer = document.getElementById("preview-container");
   previewContainer.innerHTML = "";
@@ -48,4 +45,16 @@ document.getElementById("images").addEventListener("change", (event) => {
 
     reader.readAsDataURL(file);
   });
+});
+
+const previewConvertedContainer = document.getElementById(
+  "preview-converted-container"
+);
+
+const socket = io("http://localhost:5000");
+
+socket.on("new-image-converted", (filename) => {
+  const img = document.createElement("img");
+  img.src = `/output/${filename}`;
+  previewConvertedContainer.appendChild(img);
 });

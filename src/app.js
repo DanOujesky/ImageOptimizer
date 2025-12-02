@@ -5,39 +5,46 @@ import "dotenv/config";
 import path from "path";
 import fs from "fs";
 import archiver from "archiver";
+import { Server } from "socket.io";
+import http from "http";
 
 const PORT = process.env.PORT;
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+const upload = multer({ dest: "input/" });
 
 app.use(express.static("public"));
-
-const upload = multer({ dest: "input/" });
+app.use("/output", express.static("output"));
 
 app.post("/upload", upload.array("images"), async (req, res) => {
   const workers = [];
 
   for (const file of req.files) {
+    const outputFilename = `${file.filename}.webp`;
     const worker = new Worker(path.resolve("src/worker.js"), {
       workerData: {
         inputPath: path.resolve(file.path),
-        outputPath: path.resolve(`output/${file.filename}.webp`),
+        outputPath: path.resolve(`output/${outputFilename}`),
       },
     });
 
     workers.push(
       new Promise((resolve, reject) => {
-        worker.on("message", resolve);
+        worker.on("message", (message) => {
+          io.emit("new-image-converted", outputFilename);
+          resolve(message);
+        });
+        io.emit("new-image-converted", outputFilename);
         worker.on("error", reject);
       })
     );
   }
   await Promise.all(workers);
-
   for (const file of req.files) {
     fs.unlinkSync(file.path);
   }
-
   res.json({ success: true, count: req.files.length });
 });
 app.get("/download", (req, res) => {
@@ -48,10 +55,6 @@ app.get("/download", (req, res) => {
     res.download("output.zip", "images.zip", (err) => {
       if (err) console.error(err);
       fs.unlinkSync("output.zip");
-
-      fs.readdirSync("output").forEach((file) => {
-        fs.unlinkSync(path.join("output", file));
-      });
     });
   });
 
@@ -68,6 +71,6 @@ app.get("/download", (req, res) => {
   archive.finalize();
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
