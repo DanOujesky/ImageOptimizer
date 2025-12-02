@@ -48,6 +48,10 @@ app.get("/download", (req, res) => {
     res.download("output.zip", "images.zip", (err) => {
       if (err) console.error(err);
       fs.unlinkSync("output.zip");
+
+      fs.readdirSync("output").forEach((file) => {
+        fs.unlinkSync(path.join("output", file));
+      });
     });
   });
 
