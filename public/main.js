@@ -28,3 +28,5 @@ const convertImages = async () => {
 document
   .getElementById("convert-button")
   .addEventListener("click", convertImages);
+
+document.getElementById("download-button").addEventListener("click", () => {});
