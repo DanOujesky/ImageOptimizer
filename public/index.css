@@ -48,7 +48,8 @@ section {
   border-color: #999;
 }
 
-#convert-button {
+#convert-button,
+#download-button {
   padding: 14px 40px;
   font-size: 20px;
   font-weight: bold;
@@ -60,6 +61,7 @@ section {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-#convert-button:hover {
+#convert-button:hover,
+#download-button:hover {
   background: #45a049;
 }

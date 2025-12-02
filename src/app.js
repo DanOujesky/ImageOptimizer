@@ -4,6 +4,7 @@ import express from "express";
 import "dotenv/config";
 import path from "path";
 import fs from "fs";
+import archiver from "archiver";
 
 const PORT = process.env.PORT;
 
@@ -38,6 +39,29 @@ app.post("/upload", upload.array("images"), async (req, res) => {
   }
 
   res.json({ success: true, count: req.files.length });
+});
+app.get("/download", (req, res) => {
+  const output = fs.createWriteStream("output.zip");
+  const archive = archiver("zip");
+
+  output.on("close", () => {
+    res.download("output.zip", "images.zip", (err) => {
+      if (err) console.error(err);
+      fs.unlinkSync("output.zip");
+    });
+  });
+
+  archive.on("error", (err) => {
+    throw err;
+  });
+
+  archive.pipe(output);
+
+  fs.readdirSync("output").forEach((file) => {
+    archive.file(path.join("output", file), { name: file });
+  });
+
+  archive.finalize();
 });
 
 app.listen(PORT, () => {

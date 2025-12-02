@@ -12,9 +12,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^7.0.1",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "multer": "^2.0.2",
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "globals": "^16.5.0"
   }
 }

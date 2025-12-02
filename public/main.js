@@ -29,4 +29,6 @@ document
   .getElementById("convert-button")
   .addEventListener("click", convertImages);
 
-document.getElementById("download-button").addEventListener("click", () => {});
+document.getElementById("download-button").addEventListener("click", () => {
+  window.location.href = "http://localhost:5000/download";
+});
