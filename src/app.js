@@ -41,9 +41,7 @@ app.post("/upload", upload.array("images"), async (req, res) => {
     );
   }
   await Promise.all(workers);
-  for (const file of req.files) {
-    fs.unlinkSync(file.path);
-  }
+
   res.json({ success: true, count: req.files.length });
 });
 app.get("/download", (req, res) => {
@@ -69,6 +67,20 @@ app.get("/download", (req, res) => {
 
   archive.finalize();
 });
+
+function clearFolder(folderPath) {
+  const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(folderPath, entry.name);
+
+    if (entry.isDirectory()) {
+      fs.rmSync(fullPath, { recursive: true, force: true });
+    } else {
+      fs.unlinkSync(fullPath);
+    }
+  }
+}
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
