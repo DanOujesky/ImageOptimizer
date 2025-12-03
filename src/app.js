@@ -36,7 +36,6 @@ app.post("/upload", upload.array("images"), async (req, res) => {
           io.emit("new-image-converted", outputFilename);
           resolve(message);
         });
-        io.emit("new-image-converted", outputFilename);
         worker.on("error", reject);
       })
     );
