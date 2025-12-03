@@ -17,7 +17,7 @@ const io = new Server(server);
 const upload = multer({ dest: "input/" });
 
 app.use(express.static("public"));
-app.use("/output", express.static("output"));
+app.use("/temp", express.static("temp"));
 
 app.post("/upload", upload.array("images"), async (req, res) => {
   const workers = [];
@@ -30,72 +30,70 @@ app.post("/upload", upload.array("images"), async (req, res) => {
   fs.mkdirSync(jobOutput, { recursive: true });
 
   for (const file of req.files) {
-    const outputFilename = `${file.filename}.webp`;
+    const newPath = path.join(jobInput, file.originalname);
+    fs.renameSync(file.path, newPath);
+    file.path = newPath;
+  }
+  for (const file of req.files) {
+    const outputFilename = `${path.basename(
+      file.originalname,
+      path.extname(file.originalname)
+    )}.webp`;
     const worker = new Worker(path.resolve("src/worker.js"), {
       workerData: {
-        inputPath: path.resolve(file.path),
-        outputPath: path.resolve(`output/${outputFilename}`),
+        inputPath: file.path,
+        outputPath: path.join(jobOutput, outputFilename),
       },
     });
 
     workers.push(
       new Promise((resolve, reject) => {
-        worker.on("message", (message) => {
-          io.emit("new-image-converted", outputFilename);
-          resolve(message);
+        worker.on("message", () => {
+          io.emit("new-image-converted", {
+            jobId,
+            filename: outputFilename,
+          });
+          resolve();
         });
         worker.on("error", reject);
       })
     );
   }
+
   await Promise.all(workers);
 
-  res.json({ success: true, count: req.files.length });
+  res.json({ success: true, jobId });
 });
-app.get("/download", (req, res) => {
-  const output = fs.createWriteStream("output.zip");
+app.get("/download/:jobId", (req, res) => {
+  const jobId = req.params.jobId;
+  const jobOutput = path.resolve(`temp/${jobId}/output`);
+
+  if (!fs.existsSync(jobOutput)) return res.status(404).send("Job not found");
+
+  const zipPath = path.resolve(`temp/${jobId}/result.zip`);
+  const output = fs.createWriteStream(zipPath);
   const archive = archiver("zip");
 
   output.on("close", () => {
-    res.download("output.zip", "images.zip", (err) => {
-      if (err) console.error(err);
-      fs.unlinkSync("output.zip");
+    res.download(zipPath, "images.zip", () => {
+      fs.rmSync(path.resolve(`temp/${jobId}`), {
+        recursive: true,
+        force: true,
+      });
     });
   });
 
   archive.on("error", (err) => {
     throw err;
   });
-
   archive.pipe(output);
 
-  fs.readdirSync("output").forEach((file) => {
-    archive.file(path.join("output", file), { name: file });
+  fs.readdirSync(jobOutput).forEach((file) => {
+    archive.file(path.join(jobOutput, file), { name: file });
   });
 
   archive.finalize();
 });
-
-function clearFolder(folderPath) {
-  const absolutePath = path.resolve(folderPath);
-
-  if (!fs.existsSync(absolutePath)) {
-    console.error("Folder does not exist:", absolutePath);
-    return;
-  }
-
-  const entries = fs.readdirSync(absolutePath, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const fullPath = path.join(absolutePath, entry.name);
-
-    if (entry.isDirectory()) {
-      fs.rmSync(fullPath, { recursive: true, force: true });
-    } else {
-      fs.unlinkSync(fullPath);
-    }
-  }
-}
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

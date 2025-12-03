@@ -16,6 +16,9 @@ const convertImages = async () => {
       body: formData,
     });
 
+    const data = await res.json();
+    window.currentJobId = data.jobId;
+
     if (!res.ok) {
       throw new Error("Upload failed");
     }
@@ -53,8 +56,17 @@ const previewConvertedContainer = document.getElementById(
 
 const socket = io("http://localhost:5000");
 
-socket.on("new-image-converted", (filename) => {
+socket.on("new-image-converted", ({ jobId, filename }) => {
   const img = document.createElement("img");
-  img.src = `/output/${filename}`;
+  img.src = `/temp/${jobId}/output/${filename}`;
   previewConvertedContainer.appendChild(img);
+});
+
+document.getElementById("download-button").addEventListener("click", () => {
+  if (!window.currentJobId) {
+    alert("You must upload images first.");
+    return;
+  }
+
+  window.location.href = `http://localhost:5000/download/${window.currentJobId}`;
 });
