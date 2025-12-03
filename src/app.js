@@ -21,6 +21,13 @@ app.use("/output", express.static("output"));
 
 app.post("/upload", upload.array("images"), async (req, res) => {
   const workers = [];
+  const jobId = crypto.randomUUID();
+
+  const jobInput = path.resolve(`temp/${jobId}/input`);
+  const jobOutput = path.resolve(`temp/${jobId}/output`);
+
+  fs.mkdirSync(jobInput, { recursive: true });
+  fs.mkdirSync(jobOutput, { recursive: true });
 
   for (const file of req.files) {
     const outputFilename = `${file.filename}.webp`;
