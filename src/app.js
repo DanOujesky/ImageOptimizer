@@ -7,6 +7,7 @@ import fs from "fs";
 import archiver from "archiver";
 import { Server } from "socket.io";
 import http from "http";
+import crypto from "crypto";
 
 const PORT = process.env.PORT;
 
@@ -42,7 +43,6 @@ app.post("/upload", upload.array("images"), async (req, res) => {
   }
   await Promise.all(workers);
 
-  clearFolder("./input");
   res.json({ success: true, count: req.files.length });
 });
 app.get("/download", (req, res) => {
@@ -89,7 +89,6 @@ function clearFolder(folderPath) {
     }
   }
 }
-
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
