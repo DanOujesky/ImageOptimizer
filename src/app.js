@@ -42,6 +42,7 @@ app.post("/upload", upload.array("images"), async (req, res) => {
   }
   await Promise.all(workers);
 
+  clearFolder("./input");
   res.json({ success: true, count: req.files.length });
 });
 app.get("/download", (req, res) => {
@@ -69,10 +70,17 @@ app.get("/download", (req, res) => {
 });
 
 function clearFolder(folderPath) {
-  const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+  const absolutePath = path.resolve(folderPath);
+
+  if (!fs.existsSync(absolutePath)) {
+    console.error("Folder does not exist:", absolutePath);
+    return;
+  }
+
+  const entries = fs.readdirSync(absolutePath, { withFileTypes: true });
 
   for (const entry of entries) {
-    const fullPath = path.join(folderPath, entry.name);
+    const fullPath = path.join(absolutePath, entry.name);
 
     if (entry.isDirectory()) {
       fs.rmSync(fullPath, { recursive: true, force: true });
