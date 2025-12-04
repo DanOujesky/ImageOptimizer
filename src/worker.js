@@ -1,14 +1,12 @@
 import sharp from "sharp";
-import { parentPort, workerData } from "worker_threads";
+import workerpool from "workerpool";
 
-async function convert() {
-  const { inputPath, outputPath } = workerData;
+async function convert(inputPath, outputPath) {
+  await sharp(inputPath).webp({ quality: 80 }).toFile(outputPath);
 
-  await sharp(inputPath)
-    .webp({ quality: 80, lossless: true })
-    .toFile(outputPath);
-
-  parentPort.postMessage("done");
+  return true;
 }
 
-convert();
+workerpool.worker({
+  convert,
+});

@@ -9,6 +9,7 @@ import { Server } from "socket.io";
 import http from "http";
 import crypto from "crypto";
 import workerpool from "workerpool";
+import os from "os";
 
 const PORT = process.env.PORT;
 
@@ -17,6 +18,12 @@ const server = http.createServer(app);
 const io = new Server(server);
 const upload = multer({ dest: "input/" });
 const jobsBySocket = new Map();
+
+const pool = workerpool.pool(path.resolve("src/worker.js"), {
+  maxWorkers: Math.max(1, os.cpus().length - 2),
+});
+
+console.log(pool.maxWorkers);
 
 app.use(express.static("public"));
 app.use("/temp", express.static("temp"));
@@ -48,25 +55,17 @@ app.post("/upload", upload.array("images"), async (req, res) => {
       file.originalname,
       path.extname(file.originalname)
     )}.webp`;
-    const worker = new Worker(path.resolve("src/worker.js"), {
-      workerData: {
-        inputPath: file.path,
-        outputPath: path.join(jobOutput, outputFilename),
-      },
-    });
 
-    workers.push(
-      new Promise((resolve, reject) => {
-        worker.on("message", () => {
-          io.to(socketId).emit("new-image-converted", {
-            jobId,
-            filename: outputFilename,
-          });
-          resolve();
+    const task = pool
+      .exec("convert", [file.path, path.join(jobOutput, outputFilename)])
+      .then(() => {
+        io.to(socketId).emit("new-image-converted", {
+          jobId,
+          filename: outputFilename,
         });
-        worker.on("error", reject);
-      })
-    );
+      });
+
+    workers.push(task);
   }
 
   await Promise.all(workers);
