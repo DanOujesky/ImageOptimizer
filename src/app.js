@@ -8,6 +8,7 @@ import archiver from "archiver";
 import { Server } from "socket.io";
 import http from "http";
 import crypto from "crypto";
+import workerpool from "workerpool";
 
 const PORT = process.env.PORT;
 
