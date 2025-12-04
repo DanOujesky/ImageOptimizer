@@ -73,7 +73,7 @@ document.getElementById("download-button").addEventListener("click", () => {
   resetUI();
 });
 
-socket.on("reset", () => {
+socket.on("connection", () => {
   resetUI();
 });
 

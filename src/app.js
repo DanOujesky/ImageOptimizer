@@ -15,6 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const upload = multer({ dest: "input/" });
+const jobsBySocket = new Map();
 
 app.use(express.static("public"));
 app.use("/temp", express.static("temp"));
@@ -23,6 +24,12 @@ app.post("/upload", upload.array("images"), async (req, res) => {
   const workers = [];
   const socketId = req.body.socketId;
   const jobId = crypto.randomUUID();
+
+  if (!jobsBySocket.has(socketId)) {
+    jobsBySocket.set(socketId, []);
+  }
+
+  jobsBySocket.get(socketId).push(path.resolve(`temp/${jobId}`));
 
   const jobInput = path.resolve(`temp/${jobId}/input`);
   const jobOutput = path.resolve(`temp/${jobId}/output`);
@@ -96,8 +103,21 @@ app.get("/download/:jobId", (req, res) => {
   archive.finalize();
 });
 io.on("connection", (socket) => {
-  console.log("socket: " + socket.id);
-  io.to(socket.id).emit("reset");
+  socket.on("disconnect", () => {
+    const jobFolders = jobsBySocket.get(socket.id);
+
+    if (jobFolders) {
+      for (const folder of jobFolders) {
+        try {
+          fs.rmSync(folder, { recursive: true, force: true });
+        } catch (err) {
+          console.error("Failed to delete folder");
+        }
+      }
+    }
+
+    jobsBySocket.delete(socket.id);
+  });
 });
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
