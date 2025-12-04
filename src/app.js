@@ -21,6 +21,7 @@ app.use("/temp", express.static("temp"));
 
 app.post("/upload", upload.array("images"), async (req, res) => {
   const workers = [];
+  const socketId = req.body.socketId;
   const jobId = crypto.randomUUID();
 
   const jobInput = path.resolve(`temp/${jobId}/input`);
@@ -49,7 +50,7 @@ app.post("/upload", upload.array("images"), async (req, res) => {
     workers.push(
       new Promise((resolve, reject) => {
         worker.on("message", () => {
-          io.emit("new-image-converted", {
+          io.to(socketId).emit("new-image-converted", {
             jobId,
             filename: outputFilename,
           });
@@ -94,6 +95,10 @@ app.get("/download/:jobId", (req, res) => {
 
   archive.finalize();
 });
+io.on("connection", (socket) => {
+  console.log("socket: " + socket.id);
+  io.to(socket.id).emit("initialize");
+})
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
