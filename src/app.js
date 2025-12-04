@@ -97,8 +97,8 @@ app.get("/download/:jobId", (req, res) => {
 });
 io.on("connection", (socket) => {
   console.log("socket: " + socket.id);
-  io.to(socket.id).emit("initialize");
-})
+  io.to(socket.id).emit("reset");
+});
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

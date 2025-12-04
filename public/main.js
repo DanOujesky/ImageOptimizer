@@ -1,5 +1,3 @@
-
-
 const socket = io("http://localhost:5000");
 
 const convertImages = async () => {
@@ -10,9 +8,9 @@ const convertImages = async () => {
   }
 
   const formData = new FormData();
+  formData.append("socketId", socket.id);
   for (const file of files) {
     formData.append("images", file);
-    formData.append("socketId", socket.id);
   }
 
   try {
@@ -59,25 +57,11 @@ const previewConvertedContainer = document.getElementById(
   "preview-converted-container"
 );
 
-
-
 socket.on("new-image-converted", ({ jobId, filename }) => {
   const img = document.createElement("img");
   img.src = `/temp/${jobId}/output/${filename}`;
   previewConvertedContainer.appendChild(img);
 });
-
-socket.on("initialize", ({ jobId, filename }) => {
-  const files = document.getElementById("images").files;
-  if (files.length === 0) {
-    return;
-  }
-  for (const file of files) {
-    const img = document.createElement("img");
-    img.src = ``; // add here 
-    previewConvertedContainer.appendChild(img);
-  }
-})
 
 document.getElementById("download-button").addEventListener("click", () => {
   if (!window.currentJobId) {
@@ -86,4 +70,16 @@ document.getElementById("download-button").addEventListener("click", () => {
   }
 
   window.location.href = `http://localhost:5000/download/${window.currentJobId}`;
+  resetUI();
 });
+
+socket.on("reset", () => {
+  resetUI();
+});
+
+function resetUI() {
+  document.getElementById("images").value = "";
+  document.getElementById("preview-container").innerHTML = "";
+  document.getElementById("preview-converted-container").innerHTML = "";
+  window.currentJobId = null;
+}
