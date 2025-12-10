@@ -11,7 +11,7 @@ import crypto from "crypto";
 import workerpool from "workerpool";
 import os from "os";
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 const app = express();
 const server = http.createServer(app);
