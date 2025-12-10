@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "https://imageoptimizer-ya8l.onrender.com/";
 const socket = io(API_URL);
 
 const convertImages = async () => {
