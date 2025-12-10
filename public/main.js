@@ -1,5 +1,5 @@
-const ULR = "https://imageoptimizer-ya8l.onrender.com";
-const socket = io(URL);
+const API_URL = import.meta.env.VITE_API_URL;
+const socket = io(API_URL);
 
 const convertImages = async () => {
   const files = document.getElementById("images").files;
@@ -15,7 +15,7 @@ const convertImages = async () => {
   }
 
   try {
-    const res = await fetch(`${URL}/upload`, {
+    const res = await fetch(`${API_URL}/upload`, {
       method: "POST",
       body: formData,
     });
@@ -70,7 +70,7 @@ document.getElementById("download-button").addEventListener("click", () => {
     return;
   }
 
-  window.location.href = `${URL}/download/${window.currentJobId}`;
+  window.location.href = `${API_URL}/download/${window.currentJobId}`;
   resetUI();
 });
 
