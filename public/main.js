@@ -1,4 +1,5 @@
-const socket = io("http://localhost:5000");
+const ULR = "https://imageoptimizer-ya8l.onrender.com";
+const socket = io(URL);
 
 const convertImages = async () => {
   const files = document.getElementById("images").files;
@@ -14,7 +15,7 @@ const convertImages = async () => {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/upload", {
+    const res = await fetch(`${URL}/upload`, {
       method: "POST",
       body: formData,
     });
@@ -69,7 +70,7 @@ document.getElementById("download-button").addEventListener("click", () => {
     return;
   }
 
-  window.location.href = `http://localhost:5000/download/${window.currentJobId}`;
+  window.location.href = `${URL}/download/${window.currentJobId}`;
   resetUI();
 });
 
