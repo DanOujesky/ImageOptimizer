@@ -8,6 +8,7 @@ const convertImages = async () => {
     return;
   }
 
+  document.getElementById("convert-button").disabled = true;
   const formData = new FormData();
   formData.append("socketId", socket.id);
   for (const file of files) {
@@ -20,12 +21,12 @@ const convertImages = async () => {
       body: formData,
     });
 
-    const data = await res.json();
-    window.currentJobId = data.jobId;
-
     if (!res.ok) {
       throw new Error("Upload failed");
     }
+    const data = await res.json();
+    window.currentJobId = data.jobId;
+    document.getElementById("convert-button").disabled = false;
   } catch (err) {
     console.error(err);
   }
@@ -60,7 +61,7 @@ const previewConvertedContainer = document.getElementById(
 
 socket.on("new-image-converted", ({ jobId, filename }) => {
   const img = document.createElement("img");
-  img.src = `/temp/${jobId}/output/${filename}`;
+  img.src = `${API_URL}/temp/${jobId}/output/${filename}`;
   previewConvertedContainer.appendChild(img);
 });
 
@@ -71,10 +72,12 @@ document.getElementById("download-button").addEventListener("click", () => {
   }
 
   window.location.href = `${API_URL}/download/${window.currentJobId}`;
-  resetUI();
+  setTimeout(() => {
+    resetUI();
+  }, 1000);
 });
 
-socket.on("connection", () => {
+socket.on("connect", () => {
   resetUI();
 });
 
