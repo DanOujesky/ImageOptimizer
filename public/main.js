@@ -3,6 +3,7 @@ const socket = io(API_URL);
 
 const convertImages = async () => {
   const files = document.getElementById("images").files;
+  document.getElementById("preview-converted-container").innerHTML = "";
   if (files.length === 0) {
     alert("You must select at least one image.");
     return;
